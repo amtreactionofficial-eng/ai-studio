@@ -1,44 +1,29 @@
-import os, re
-from flask import Flask, render_template, request, jsonify
-from flask_cors import CORS
+import streamlit as st
 from youtube_transcript_api import YouTubeTranscriptApi
+import re
 
-app = Flask(__name__)
-CORS(app)
+st.set_page_config(page_title="AI Myanmar Studio", layout="wide")
+st.title("AI MYANMAR STUDIO PRO 🚀")
 
-def get_youtube_id(url):
-    # YouTube Shorts ရော Video ရော ID ယူနိုင်အောင် ပြင်ထားတယ်
-    id_match = re.search(r'(?:v=|\/)([0-9A-Za-z_-]{11}).*', url)
-    return id_match.group(1) if id_match else None
+url = st.text_input("YouTube Video/Shorts Link ကို ဒီမှာ ထည့်ပါ:")
 
-@app.route('/')
-def home():
-    return render_template('index.html')
-
-@app.route('/process', methods=['POST'])
-def process_video():
-    try:
-        data = request.json
-        url = data.get('url')
-        video_id = get_youtube_id(url)
-        
-        if not video_id:
-            return jsonify({"error": "YouTube Link မှားနေပါတယ်"}), 400
-
-        # Transcript ဆွဲထုတ်ခြင်း
-        transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
-        full_script = " ".join([t['text'] for t in transcript_list])
-        
-        # ဒီနေရာမှာ AI Feature တွေအတွက် နမူနာစာသားတွေပါ ထည့်ပေးလိုက်တယ်
-        return jsonify({
-            "success": True,
-            "title": "YouTube Script ရရှိပါပြီ",
-            "script": full_script,
-            "myanmar": "အခုဒါကတော့ AI ကနေ မြန်မာလို ဘာသာပြန်ပေးထားတဲ့ စာသားဖြစ်ပါတယ်။ (Google Translate API ချိတ်ဆက်ရန် လိုအပ်ပါသည်)",
-            "fb_post": f"🚀 Video Content Summary: \n\n{full_script[:100]}... #AI_Myanmar_Studio"
-        })
-    except Exception as e:
-        return jsonify({"error": "ဒီ Video မှာ စာသားထုတ်လို့မရပါဘူး။ Script ပိတ်ထားတာ ဖြစ်နိုင်ပါတယ်။"}), 500
-
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=9999)
+if st.button("Generate AI Content"):
+    if url:
+        try:
+            video_id = re.search(r'(?:v=|\/)([0-9A-Za-z_-]{11}).*', url).group(1)
+            transcript = YouTubeTranscriptApi.get_transcript(video_id)
+            full_text = " ".join([t['text'] for t in transcript])
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                st.subheader("Original English Script")
+                st.write(full_text)
+            
+            with col2:
+                st.subheader("Facebook/TikTok Post Idea")
+                st.info(f"Summary: {full_text[:200]}... #AI_Myanmar")
+                
+        except Exception as e:
+            st.error("ဒီ Video မှာ Script မရှိလို့ မရနိုင်ပါဘူး ဘရို။")
+    else:
+        st.warning("Link ထည့်ပါဦး!")
