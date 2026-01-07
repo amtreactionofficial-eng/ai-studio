@@ -1,4 +1,4 @@
-import os
+import os, re
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from youtube_transcript_api import YouTubeTranscriptApi
@@ -7,9 +7,9 @@ app = Flask(__name__)
 CORS(app)
 
 def get_youtube_id(url):
-    if "v=" in url: return url.split("v=")[1].split("&")[0]
-    elif "youtu.be/" in url: return url.split("youtu.be/")[1].split("?")[0]
-    return None
+    # YouTube Shorts ရော Video ရော ID ယူနိုင်အောင် ပြင်ထားတယ်
+    id_match = re.search(r'(?:v=|\/)([0-9A-Za-z_-]{11}).*', url)
+    return id_match.group(1) if id_match else None
 
 @app.route('/')
 def home():
@@ -25,17 +25,20 @@ def process_video():
         if not video_id:
             return jsonify({"error": "YouTube Link မှားနေပါတယ်"}), 400
 
-        # YouTube ကနေ စာသားဆွဲထုတ်မယ်
+        # Transcript ဆွဲထုတ်ခြင်း
         transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
         full_script = " ".join([t['text'] for t in transcript_list])
         
+        # ဒီနေရာမှာ AI Feature တွေအတွက် နမူနာစာသားတွေပါ ထည့်ပေးလိုက်တယ်
         return jsonify({
-            "title": "YouTube Script ထုတ်ယူမှု အောင်မြင်ပါပြီ",
-            "script": full_script
+            "success": True,
+            "title": "YouTube Script ရရှိပါပြီ",
+            "script": full_script,
+            "myanmar": "အခုဒါကတော့ AI ကနေ မြန်မာလို ဘာသာပြန်ပေးထားတဲ့ စာသားဖြစ်ပါတယ်။ (Google Translate API ချိတ်ဆက်ရန် လိုအပ်ပါသည်)",
+            "fb_post": f"🚀 Video Content Summary: \n\n{full_script[:100]}... #AI_Myanmar_Studio"
         })
     except Exception as e:
-        return jsonify({"error": "ဒီ Video မှာ Script (Captions) မရှိလို့ မရနိုင်ပါဘူး။"}), 500
+        return jsonify({"error": "ဒီ Video မှာ စာသားထုတ်လို့မရပါဘူး။ Script ပိတ်ထားတာ ဖြစ်နိုင်ပါတယ်။"}), 500
 
 if __name__ == '__main__':
-    # Port 8080 ကို သုံးထားတယ်နော် ဘရို
-    app.run(debug=True, host='0.0.0.0', port=8888)
+    app.run(debug=True, host='0.0.0.0', port=9999)
