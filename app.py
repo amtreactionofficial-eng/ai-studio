@@ -38,4 +38,4 @@ def process_video():
 
 if __name__ == '__main__':
     # Port 8080 ကို သုံးထားတယ်နော် ဘရို
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    app.run(debug=True, host='0.0.0.0', port=8888)
