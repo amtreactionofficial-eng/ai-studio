@@ -1,8 +1,16 @@
+import os
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
+# YouTube ကနေ စာသားထုတ်ဖို့ library
+from youtube_transcript_api import YouTubeTranscriptApi
 
 app = Flask(__name__)
 CORS(app)
+
+def get_youtube_id(url):
+    if "v=" in url: return url.split("v=")[1].split("&")[0]
+    elif "youtu.be/" in url: return url.split("youtu.be/")[1].split("?")[0]
+    return None
 
 @app.route('/')
 def home():
@@ -10,20 +18,24 @@ def home():
 
 @app.route('/process', methods=['POST'])
 def process_video():
-    try:
-        data = request.json
-        video_url = data.get('url')
-        
-        if not video_url:
-            return jsonify({"error": "Link ထည့်ပေးဖို့ လိုပါတယ်"}), 400
+    data = request.json
+    url = data.get('url')
+    video_id = get_youtube_id(url)
+    
+    if not video_id:
+        return jsonify({"error": "YouTube Link မှားနေပါတယ် ဘရို"}), 400
 
-        # AI က အလုပ်လုပ်သလိုမျိုး နမူနာ စာသား ထုတ်ပေးခြင်း
+    try:
+        # YouTube ကနေ Script (Transcript) ကို ဆွဲထုတ်ခြင်း
+        transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=['en', 'my'])
+        full_script = " ".join([t['text'] for t in transcript_list])
+        
         return jsonify({
-            "title": "AI စနစ် ချိတ်ဆက်မှု အောင်မြင်သည်",
-            "script": f"ဘရို ထည့်လိုက်တဲ့ Link ကတော့: {video_url} ဖြစ်ပါတယ်။ \n\nဒါကတော့ AI ကနေ ထုတ်ပေးလိုက်တဲ့ နမူနာ စာသား (Script) ဖြစ်ပါတယ်။ အခုဆိုရင် Backend နဲ့ Frontend ချိတ်ဆက်မှု ၁၀၀% အောင်မြင်သွားပါပြီ!"
+            "title": "YouTube Script ထုတ်ယူမှု အောင်မြင်ပါပြီ",
+            "script": full_script
         })
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "ဒီ Video မှာ Script ပိတ်ထားလို့ မရနိုင်ပါဘူး ဘရို။"})
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
