@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Myanmar Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-[#050810] text-slate-200 min-h-screen">
+
+    <nav class="p-4 bg-[#0a0f1e] border-b border-slate-800 shadow-xl">
+        <div class="container mx-auto">
+            <h1 class="text-2xl font-black text-cyan-400 italic tracking-tighter">AI MYANMAR STUDIO</h1>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-12 max-w-3xl">
+        <div class="bg-[#0f172a] border border-slate-800 p-8 rounded-[2rem] shadow-2xl mb-10">
+            <h2 class="text-xl font-bold mb-6 text-center">YouTube Video Link ထည့်ပါ</h2>
+            <div class="flex flex-col gap-4">
+                <input id="videoUrl" type="text" placeholder="https://www.youtube.com/watch?v=..." 
+                       class="bg-[#050810] border border-slate-700 p-4 rounded-xl outline-none focus:border-cyan-500">
+                <button onclick="processVideo()" class="bg-cyan-600 hover:bg-cyan-500 py-4 rounded-xl font-bold transition">
+                    Generate AI Script
+                </button>
+            </div>
+        </div>
+
+        <div id="resultArea" class="hidden space-y-4">
+            <div class="bg-[#0f172a] border border-slate-800 p-6 rounded-2xl">
+                <p class="text-xs text-slate-500 font-bold uppercase mb-2">AI Result:</p>
+                <div id="aiTitle" class="text-lg font-bold text-cyan-400 mb-3"></div>
+                <div id="aiScript" class="text-slate-300 leading-relaxed whitespace-pre-wrap bg-[#050810] p-4 rounded-lg"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        async function processVideo() {
+            const url = document.getElementById('videoUrl').value;
+            const resultArea = document.getElementById('resultArea');
+            
+            if (!url) return alert("Link ထည့်ပါဦး ဘရို!");
+
+            try {
+                const response = await fetch('/process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: url })
+                });
+                const data = await response.json();
+                
+                document.getElementById('aiTitle').innerText = data.title;
+                document.getElementById('aiScript').innerText = data.script;
+                resultArea.classList.remove('hidden');
+            } catch (err) {
+                alert("Error တက်နေတယ် ဘရို။ app.py ကို Run ထားရဲ့လား ပြန်စစ်ပေးပါ။");
+            }
+        }
+    </script>
+</body>
+</html>
