@@ -1,7 +1,6 @@
 import os
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
-# YouTube ကနေ စာသားထုတ်ဖို့ library
 from youtube_transcript_api import YouTubeTranscriptApi
 
 app = Flask(__name__)
@@ -26,8 +25,8 @@ def process_video():
         return jsonify({"error": "YouTube Link မှားနေပါတယ် ဘရို"}), 400
 
     try:
-        # YouTube ကနေ Script (Transcript) ကို ဆွဲထုတ်ခြင်း
-        transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=['en', 'my'])
+        # YouTube ကနေ စာသား (Script) ဆွဲထုတ်ခြင်း
+        transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
         full_script = " ".join([t['text'] for t in transcript_list])
         
         return jsonify({
@@ -35,7 +34,7 @@ def process_video():
             "script": full_script
         })
     except Exception as e:
-        return jsonify({"error": "ဒီ Video မှာ Script ပိတ်ထားလို့ မရနိုင်ပါဘူး ဘရို။"})
+        return jsonify({"error": "ဒီ Video မှာ Script (Captions) ပိတ်ထားလို့ မရနိုင်ပါဘူး ဘရို။"})
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
