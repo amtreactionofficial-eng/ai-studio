@@ -17,15 +17,15 @@ def home():
 
 @app.route('/process', methods=['POST'])
 def process_video():
-    data = request.json
-    url = data.get('url')
-    video_id = get_youtube_id(url)
-    
-    if not video_id:
-        return jsonify({"error": "YouTube Link မှားနေပါတယ် ဘရို"}), 400
-
     try:
-        # YouTube ကနေ စာသား (Script) ဆွဲထုတ်ခြင်း
+        data = request.json
+        url = data.get('url')
+        video_id = get_youtube_id(url)
+        
+        if not video_id:
+            return jsonify({"error": "YouTube Link မှားနေပါတယ်"}), 400
+
+        # YouTube ကနေ စာသားဆွဲထုတ်မယ်
         transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
         full_script = " ".join([t['text'] for t in transcript_list])
         
@@ -34,7 +34,8 @@ def process_video():
             "script": full_script
         })
     except Exception as e:
-        return jsonify({"error": "ဒီ Video မှာ Script (Captions) ပိတ်ထားလို့ မရနိုင်ပါဘူး ဘရို။"})
+        return jsonify({"error": "ဒီ Video မှာ Script (Captions) မရှိလို့ မရနိုင်ပါဘူး။"}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    # Port 8080 ကို သုံးထားတယ်နော် ဘရို
+    app.run(debug=True, host='0.0.0.0', port=8080)
